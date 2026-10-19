@@ -1,0 +1,12 @@
+{
+  "name": "clinic-queue-json-app",
+  "version": "1.4.0",
+  "private": true,
+  "description": "Local HTML/CSS/JavaScript clinic queue application with persistent JSON storage and automatic backups",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
