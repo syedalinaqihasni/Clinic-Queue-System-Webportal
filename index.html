@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#123b55">
+  <title>Clinic Queue System</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div id="loginScreen" class="login-screen">
+    <form id="loginForm" class="login-card">
+      <div class="brand-mark">CQ</div>
+      <p class="eyebrow">CLINIC OPERATIONS</p>
+      <h1>Clinic Queue System</h1>
+      <p class="muted">Sign in to manage reception and patient queues.</p>
+      <label>Username<input id="loginUsername" autocomplete="username" required value="admin"></label>
+      <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required
+          placeholder="Enter password"></label>
+      <p id="loginError" class="error" role="alert"></p><button class="btn primary full" type="submit">Sign in</button>
+      <p class="tiny muted">First run: admin / admin123</p>
+    </form>
+  </div>
+  <div id="appShell" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark small">CQ</div>
+        <div><strong id="sideClinicName">Clinic Queue</strong><span>Queue management</span></div>
+      </div>
+      <nav id="mainNav">
+        <button class="nav-item active" data-page="reception"><span>▦</span> Reception</button>
+        <button class="nav-item" data-page="tickets"><span>▤</span> Ticket history</button>
+        <div class="nav-label">ADMINISTRATION</div>
+        <button class="nav-item admin-only" data-page="departments"><span>▥</span> Departments</button>
+        <button class="nav-item admin-only" data-page="doctors"><span>⚕</span> Doctors</button>
+        <button class="nav-item admin-only" data-page="shifts"><span>◷</span> Shifts</button>
+        <button class="nav-item admin-only" data-page="counters"><span>▣</span> Counters</button>
+        <button class="nav-item admin-only" data-page="printers"><span>▤</span> Printers</button>
+        <button class="nav-item admin-only" data-page="users"><span>♙</span> Users & roles</button>
+        <button class="nav-item admin-only" data-page="settings"><span>⚙</span> Clinic settings</button>
+        <button class="nav-item admin-only" data-page="reports"><span>▥</span> Reports & export</button>
+        <button class="nav-item admin-only" data-page="audit"><span>≡</span> Audit log</button>
+        <button class="nav-item admin-only" data-page="backup"><span>⇧</span> Backup & restore</button>
+      </nav>
+      <div class="sidebar-bottom"><span class="status-dot"></span><span>Local browser storage</span></div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="pageEyebrow">FRONT DESK</p>
+          <h2 id="pageTitle">Reception</h2>
+        </div>
+        <div class="top-actions"><span id="todayClock" class="clock"></span>
+          <div class="user-pill">
+            <div class="avatar" id="userAvatar">A</div>
+            <div><strong id="currentUserName">Administrator</strong><span id="currentUserRole">ADMIN</span></div>
+          </div><button id="logoutBtn" class="btn light">Log out</button>
+        </div>
+      </header>
+      <div id="toast" class="toast hidden" role="status"></div>
+      <section id="page-reception" class="page active">
+        <div class="welcome-row">
+          <div>
+            <h3>Issue a queue ticket</h3>
+            <p class="muted">Choose the department and visit details, then print the ticket.</p>
+          </div><span class="date-chip" id="todayDate"></span>
+        </div>
+        <div class="reception-grid">
+          <div class="panel ticket-form-panel">
+            <div class="panel-heading">
+              <div>
+                <h3>New ticket</h3>
+                <p>Fields marked * are required.</p>
+              </div><span class="live-badge"><i></i> Ready</span>
+            </div>
+            <form id="ticketForm" class="form-grid">
+              <label class="span-2">Department *<select id="ticketDepartment" required></select></label>
+              <label class="span-2">Doctor<select id="ticketDoctor">
+                  <option value="">No specific doctor</option>
+                </select></label>
+              <label>Shift *<select id="ticketShift" required></select></label><label>Counter *<select
+                  id="ticketCounter" required></select></label>
+              <label>Fee (PKR) *<input id="ticketPrice" type="number" min="0" step="1" required></label><label>Patient
+                reference <input id="patientReference" maxlength="60" placeholder="Optional"></label>
+              <div class="span-2 form-actions"><button class="btn primary" type="submit">▣ &nbsp; Issue & print
+                  ticket</button><button class="btn secondary" type="button" id="previewTicketBtn">Preview
+                  ticket</button></div>
+            </form>
+          </div>
+          <div class="side-stack">
+            <div class="panel next-ticket-card">
+              <p class="eyebrow">NEXT EXPECTED NUMBER</p>
+              <div id="nextTicketNumber" class="next-number">G001</div>
+              <div id="nextTicketDepartment" class="next-department">General OPD</div>
+              <div class="next-meta"><span id="nextTicketShift">Morning shift</span><span id="nextTicketCounter">Counter
+                  01</span></div>
+              <div class="separator"></div>
+              <div class="mini-stats">
+                <div><span>Issued today</span><strong id="issuedToday">0</strong></div>
+                <div><span>Revenue today</span><strong id="revenueToday">Rs 0</strong></div>
+              </div>
+            </div>
+            <div class="panel quick-panel">
+              <h3>Quick actions</h3><button class="quick-action" data-go="tickets"><span
+                  class="quick-icon">▤</span><span><strong>Ticket history</strong><small>Find, reprint or void
+                    tickets</small></span><b>›</b></button><button class="quick-action admin-only"
+                data-go="reports"><span class="quick-icon">▥</span><span><strong>Daily reports</strong><small>Review
+                    totals and export CSV</small></span><b>›</b></button>
+            </div>
+          </div>
+        </div>
+        <div class="panel recent-panel">
+          <div class="panel-heading">
+            <div>
+              <h3>Recent tickets</h3>
+              <p>Latest tickets issued on this device.</p>
+            </div><button class="btn light small-btn" data-go="tickets">View all</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ticket</th>
+                  <th>Department</th>
+                  <th>Doctor</th>
+                  <th>Shift</th>
+                  <th>Time</th>
+                  <th>Fee</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="recentTicketsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <section id="page-tickets" class="page">
+        <div class="page-intro">
+          <div>
+            <h3>Ticket history</h3>
+            <p class="muted">Search tickets, reprint receipts or void tickets. Voided records remain in history.</p>
+          </div><button id="ticketsExportBtn" class="btn secondary">Export CSV</button>
+        </div>
+        <div class="panel">
+          <div class="toolbar"><input id="ticketSearch"
+              placeholder="Search ticket, department, doctor or reference..."><select id="ticketStatusFilter">
+              <option value="ALL">All statuses</option>
+              <option>PRINTED</option>
+              <option>REPRINTED</option>
+              <option>VOID</option>
+            </select><input id="ticketDateFilter" type="date"><button class="btn light" id="clearTicketFilters">Clear
+              filters</button></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ticket</th>
+                  <th>Date / time</th>
+                  <th>Department</th>
+                  <th>Doctor</th>
+                  <th>Shift</th>
+                  <th>Counter</th>
+                  <th>Fee</th>
+                  <th>Status</th>
+                  <th>Prints</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ticketsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <section id="page-admin" class="page">
+        <div class="page-intro">
+          <div>
+            <h3 id="crudTitle">Manage records</h3>
+            <p class="muted" id="crudDescription">Create, edit and deactivate configuration records.</p>
+          </div><button id="addRecordBtn" class="btn primary">＋ Add record</button>
+        </div>
+        <div class="panel">
+          <div class="toolbar"><input id="crudSearch" placeholder="Search records..."><span id="crudCount"
+              class="muted"></span></div>
+          <div class="table-wrap">
+            <table>
+              <thead id="crudTableHead"></thead>
+              <tbody id="crudTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <section id="page-settings" class="page">
+        <div class="page-intro">
+          <div>
+            <h3>Clinic settings</h3>
+            <p class="muted">Set your clinic details and ticket format.</p>
+          </div><button class="btn primary" id="saveSettingsBtn">Save settings</button>
+        </div>
+        <form id="settingsForm" class="panel settings-grid"><label>Clinic name<input id="settingClinicName"
+              required></label><label>Currency label<input id="settingCurrency" required
+              maxlength="8"></label><label>Ticket footer<input id="settingFooter"
+              maxlength="120"></label><label>Timezone<input id="settingTimezone"
+              value="Asia/Karachi"></label><label>Ticket prefix format<select id="settingTicketFormat">
+              <option value="CODE###">Department code + 3 digits (G001)</option>
+              <option value="CODE-###">Department code + hyphen + 3 digits (G-001)</option>
+            </select></label><label>Auto-select active shift<select id="settingAutoShift">
+              <option value="yes">Yes, based on current time</option>
+              <option value="no">No, receptionist selects shift</option>
+            </select></label></form>
+      </section>
+      <section id="page-reports" class="page">
+        <div class="page-intro">
+          <div>
+            <h3>Reports & export</h3>
+            <p class="muted">Summaries use ticket issue date and stored ticket fee.</p>
+          </div><button class="btn secondary" id="reportExportBtn">Export filtered CSV</button>
+        </div>
+        <div class="panel">
+          <div class="toolbar"><label class="inline-label">From <input type="date" id="reportFrom"></label><label
+              class="inline-label">To <input type="date" id="reportTo"></label><select id="reportDepartment">
+              <option value="ALL">All departments</option>
+            </select><button id="runReportBtn" class="btn primary">Run report</button></div>
+          <div class="stats-grid">
+            <div class="stat-card"><span>Total tickets</span><strong id="reportTicketCount">0</strong></div>
+            <div class="stat-card"><span>Valid tickets</span><strong id="reportValidCount">0</strong></div>
+            <div class="stat-card"><span>Voided tickets</span><strong id="reportVoidCount">0</strong></div>
+            <div class="stat-card"><span>Collected fees</span><strong id="reportRevenue">Rs 0</strong></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Department</th>
+                  <th>Tickets</th>
+                  <th>Voided</th>
+                  <th>Collected fees</th>
+                </tr>
+              </thead>
+              <tbody id="reportTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <section id="page-audit" class="page">
+        <div class="page-intro">
+          <div>
+            <h3>Audit log</h3>
+            <p class="muted">Records important actions performed in this browser.</p>
+          </div><button id="auditExportBtn" class="btn secondary">Export CSV</button>
+        </div>
+        <div class="panel">
+          <div class="toolbar"><input id="auditSearch" placeholder="Search action, user or details..."></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date / time</th>
+                  <th>User</th>
+                  <th>Action</th>
+                  <th>Entity</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="auditTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <section id="page-backup" class="page">
+        <div class="page-intro">
+          <div>
+            <h3>Backup & restore</h3>
+            <p class="muted">Export a JSON backup regularly. Restore replaces the current local data.</p>
+          </div>
+        </div>
+        <div class="backup-grid">
+          <div class="panel backup-card">
+            <div class="backup-icon">⇩</div>
+            <h3>Download backup</h3>
+            <p class="muted">Save all departments, doctors, users, tickets, settings and audit records to a JSON file.
+            </p><button class="btn primary" id="downloadBackupBtn">Download JSON backup</button>
+          </div>
+          <div class="panel backup-card">
+            <div class="backup-icon">⇧</div>
+            <h3>Restore backup</h3>
+            <p class="muted">Choose a previously exported JSON backup. This overwrites data currently stored in this
+              browser.</p><label class="file-input-label">Choose backup file<input type="file" id="restoreFileInput"
+                accept=".json,application/json"></label><button class="btn danger" id="restoreBackupBtn"
+              disabled>Restore selected backup</button>
+          </div>
+          <div class="panel backup-card">
+            <div class="backup-icon">▧</div>
+            <h3>Storage status</h3>
+            <p class="muted">Data is stored in this browser's local storage on this device.</p>
+            <div class="storage-value" id="storageUsage">Calculating…</div><button class="btn light"
+              id="downloadCsvAllBtn">Export all tickets as CSV</button>
+          </div>
+        </div>
+        <div class="notice warning"><strong>Important:</strong> Browser storage is not a multi-computer database. Use
+          this app on one reception computer or build a server-backed version for shared counters. Clearing browser data
+          can remove records; keep backups.</div>
+      </section>
+    </main>
+  </div>
+  <div id="recordModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="recordModalTitle">
+    <div class="modal-card">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">ADMINISTRATION</p>
+          <h3 id="recordModalTitle">Add record</h3>
+        </div><button class="icon-button" id="closeRecordModal" aria-label="Close">×</button>
+      </div>
+      <form id="recordForm">
+        <div id="recordFields" class="modal-fields"></div>
+        <div class="modal-actions"><button type="button" class="btn light" id="cancelRecordBtn">Cancel</button><button
+            type="submit" class="btn primary">Save record</button></div>
+      </form>
+    </div>
+  </div>
+  <div id="previewModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle">
+    <div class="modal-card ticket-preview-card">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">TICKET PREVIEW</p>
+          <h3 id="previewModalTitle">Queue ticket</h3>
+        </div><button class="icon-button" id="closePreviewModal" aria-label="Close">×</button>
+      </div>
+      <div id="ticketPreview" class="receipt"></div>
+      <div class="modal-actions"><button class="btn light" id="cancelPreviewBtn">Close</button><button
+          class="btn primary" id="printPreviewBtn">Print ticket</button></div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+
+</html>
